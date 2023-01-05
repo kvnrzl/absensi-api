@@ -8,6 +8,7 @@ require (
 	github.com/go-playground/validator/v10 v10.11.1
 	github.com/google/wire v0.5.0
 	github.com/joho/godotenv v1.4.0
+	github.com/sirupsen/logrus v1.9.0
 	golang.org/x/crypto v0.5.0
 	gorm.io/driver/mysql v1.4.5
 	gorm.io/gorm v1.24.3

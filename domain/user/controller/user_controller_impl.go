@@ -9,6 +9,7 @@ import (
 	"absensi-api.com/helper"
 	"absensi-api.com/model"
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 )
 
 type UserControllerImpl struct {
@@ -24,6 +25,7 @@ func NewUserControllerImpl(userService service.UserService) UserController {
 func (u *UserControllerImpl) Register(c *gin.Context) {
 	var user model.User
 	if err := c.ShouldBindJSON(&user); err != nil {
+		logrus.Error(err)
 		helper.ResponseBadRequest(c, err.Error())
 		return
 	}
@@ -31,19 +33,23 @@ func (u *UserControllerImpl) Register(c *gin.Context) {
 	_, err := u.userService.Register(c, &user)
 	if err != nil {
 		if errors.Is(err, model.ErrInvalidJsonRequest) {
+			logrus.Error(err)
 			helper.ResponseBadRequest(c, err.Error())
 			return
 		}
 
 		if errors.Is(err, model.ErrUsernameAlreadyExist) {
+			logrus.Error(err)
 			helper.ResponseBadRequest(c, err.Error())
 			return
 		}
 
+		logrus.Error(err)
 		helper.ResponseInternalServerError(c, err.Error())
 		return
 	}
 
+	logrus.Infof("User created: %v", user)
 	helper.ResponseCreated(c, "Register success")
 }
 
@@ -51,6 +57,7 @@ func (u *UserControllerImpl) Login(c *gin.Context) {
 	var user model.User
 
 	if err := c.ShouldBindJSON(&user); err != nil {
+		logrus.Error(err)
 		helper.ResponseBadRequest(c, err.Error())
 		return
 	}
@@ -58,15 +65,18 @@ func (u *UserControllerImpl) Login(c *gin.Context) {
 	token, err := u.userService.Login(c, &user)
 	if err != nil {
 		if errors.Is(err, model.ErrInvalidJsonRequest) {
+			logrus.Error(err)
 			helper.ResponseBadRequest(c, err.Error())
 			return
 		}
 
 		if errors.Is(err, model.ErrUsernameOrPasswordWrong) {
+			logrus.Error(err)
 			helper.ResponseBadRequest(c, err.Error())
 			return
 		}
 
+		logrus.Error(err)
 		helper.ResponseInternalServerError(c, err.Error())
 		return
 	}
@@ -81,6 +91,7 @@ func (u *UserControllerImpl) Login(c *gin.Context) {
 
 	http.SetCookie(c.Writer, &cookie)
 
+	logrus.Infof("User logged in: %v", user)
 	helper.ResponseOK(c, "Login success")
 }
 
@@ -102,5 +113,6 @@ func (u *UserControllerImpl) Logout(c *gin.Context) {
 	}
 	http.SetCookie(c.Writer, &tokenCookie)
 
+	logrus.Infof("User logged out")
 	helper.ResponseOK(c, "Logout success")
 }

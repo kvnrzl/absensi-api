@@ -13,6 +13,11 @@ func SetupRouter(
 	attendanceController attendanceController.AttendanceController,
 ) *gin.Engine {
 	router := gin.Default()
+
+	router.GET("/", func(r *gin.Context) {
+		r.JSON(200, "Absensi API service is ready!")
+	})
+
 	router.Use(CORSMiddleware())
 
 	api := router.Group("/api")

@@ -1,11 +1,11 @@
 package main
 
-import "log"
+import (
+	"github.com/sirupsen/logrus"
+)
 
 func main() {
 	r := InitServer()
-	log.Fatal(r.Run("127.0.0.1:8080"))
+	logrus.Info("Server started at port 8080")
+	logrus.Fatal(r.Run(":8080"))
 }
-
-//!! JANGAN LUPA GANTI UNTUK SISTEM CHECKINNYA PERHARI
-//!! UNTUK LOGOUT GAPERLU MIDDLEWARE / CEK COOKIE
