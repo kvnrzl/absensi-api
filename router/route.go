@@ -2,11 +2,16 @@ package router
 
 import (
 	activityController "absensi-api.com/domain/activity/controller"
+	attendanceController "absensi-api.com/domain/attendance/controller"
 	userController "absensi-api.com/domain/user/controller"
 	"github.com/gin-gonic/gin"
 )
 
-func SetupRouter(userController userController.UserController, activityController activityController.ActivityController) *gin.Engine {
+func SetupRouter(
+	userController userController.UserController,
+	activityController activityController.ActivityController,
+	attendanceController attendanceController.AttendanceController,
+) *gin.Engine {
 	router := gin.Default()
 
 	api := router.Group("/api")
@@ -22,6 +27,13 @@ func SetupRouter(userController userController.UserController, activityControlle
 			activities.GET("/:id", activityController.GetActivityByID)
 			activities.PATCH("/:id", activityController.UpdateActivity)
 			activities.DELETE("/:id", activityController.DeleteActivity)
+		}
+
+		attendances := api.Group("/attendances")
+		{
+			attendances.POST("", attendanceController.CheckIn)
+			attendances.PATCH("", attendanceController.CheckOut)
+			attendances.GET("", attendanceController.GetAllHistoriesAttendance)
 		}
 	}
 

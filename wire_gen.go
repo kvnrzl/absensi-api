@@ -11,6 +11,9 @@ import (
 	controller2 "absensi-api.com/domain/activity/controller"
 	mysql2 "absensi-api.com/domain/activity/repository/mysql"
 	service2 "absensi-api.com/domain/activity/service"
+	controller3 "absensi-api.com/domain/attendance/controller"
+	mysql3 "absensi-api.com/domain/attendance/repository/mysql"
+	service3 "absensi-api.com/domain/attendance/service"
 	"absensi-api.com/domain/user/controller"
 	"absensi-api.com/domain/user/repository/mysql"
 	"absensi-api.com/domain/user/service"
@@ -30,6 +33,9 @@ func InitServer() *gin.Engine {
 	activityRepository := mysql2.NewActivityRepositoryImpl()
 	activityService := service2.NewActivityServiceImpl(activityRepository, db, validate)
 	activityController := controller2.NewActivityControllerImpl(activityService)
-	engine := router.SetupRouter(userController, activityController)
+	attendanceRepository := mysql3.NewAttendanceRepositoryImpl()
+	attendanceService := service3.NewAttendanceServiceImpl(attendanceRepository, db, validate)
+	attendanceController := controller3.NewAttendanceControllerImpl(attendanceService)
+	engine := router.SetupRouter(userController, activityController, attendanceController)
 	return engine
 }
