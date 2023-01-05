@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"absensi-api.com/config"
 	"absensi-api.com/domain/user/repository"
 	"absensi-api.com/model"
 	jwt "github.com/dgrijalva/jwt-go"
@@ -28,7 +29,7 @@ func NewUserServiceImpl(userRepository repository.UserRepository, db *gorm.DB, v
 
 func (u *UserServiceImpl) Register(ctx context.Context, user *model.User) (*model.User, error) {
 	if err := u.validate.Struct(user); err != nil {
-		return nil, err
+		return nil, model.ErrInvalidJsonRequest
 	}
 
 	exist, _ := u.userRepository.FindByUsername(ctx, u.db, user.Username)
@@ -48,31 +49,30 @@ func (u *UserServiceImpl) Register(ctx context.Context, user *model.User) (*mode
 
 func (u *UserServiceImpl) Login(ctx context.Context, user *model.User) (string, error) {
 	if err := u.validate.Struct(user); err != nil {
-		return "", err
+		return "", model.ErrInvalidJsonRequest
 	}
 
 	userDB, err := u.userRepository.FindByUsername(ctx, u.db, user.Username)
 	if err != nil {
-		return "", err
+		return "", model.ErrUsernameOrPasswordWrong
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(userDB.Password), []byte(user.Password)); err != nil {
-		return "", err
+		return "", model.ErrUsernameOrPasswordWrong
 	}
 
-	claims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{
-		Issuer:    "absensi-api.com",
-		ExpiresAt: time.Now().Add(time.Hour * 24).Unix(),
+	claims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"id":       userDB.ID,
+		"name":     userDB.Name,
+		"username": userDB.Username,
+		"role":     userDB.Role,
+		"exp":      time.Now().Add(config.EXP_DURATION).Unix(),
 	})
 
-	token, err := claims.SignedString([]byte("secret"))
+	token, err := claims.SignedString([]byte(config.SECRET_KEY))
 	if err != nil {
 		return "", err
 	}
 
 	return token, nil
-}
-
-func (u *UserServiceImpl) Logout(ctx context.Context) error {
-	return nil
 }

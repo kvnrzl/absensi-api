@@ -25,7 +25,7 @@ func NewActivityServiceImpl(activityRepository repository.ActivityRepository, db
 
 func (s *ActivityServiceImpl) Save(ctx context.Context, activity *model.Activity) (*model.Activity, error) {
 	if err := s.validate.Struct(activity); err != nil {
-		return nil, err
+		return nil, model.ErrInvalidJsonRequest
 	}
 
 	return s.activityRepository.Save(ctx, s.db, activity)
@@ -35,12 +35,16 @@ func (s *ActivityServiceImpl) FindAll(ctx context.Context) ([]*model.Activity, e
 	return s.activityRepository.FindAll(ctx, s.db)
 }
 
-func (s *ActivityServiceImpl) FindByID(ctx context.Context, id uint) (*model.Activity, error) {
-	return s.activityRepository.FindByID(ctx, s.db, id)
+func (s *ActivityServiceImpl) FindByDate(ctx context.Context, userID uint, date string) ([]*model.Activity, error) {
+	return s.activityRepository.FindByDate(ctx, s.db, userID, date)
+}
+
+func (s *ActivityServiceImpl) FindByUserID(ctx context.Context, userID uint) ([]*model.Activity, error) {
+	return s.activityRepository.FindByUserID(ctx, s.db, userID)
 }
 
 func (s *ActivityServiceImpl) Update(ctx context.Context, activity *model.Activity) (*model.Activity, error) {
-	if _, err := s.FindByID(ctx, activity.ID); err != nil {
+	if _, err := s.activityRepository.FindByID(ctx, s.db, activity.ID, activity.UserID); err != nil {
 		return nil, err
 	}
 
@@ -48,13 +52,13 @@ func (s *ActivityServiceImpl) Update(ctx context.Context, activity *model.Activi
 		return nil, err
 	}
 
-	return s.FindByID(ctx, activity.ID)
+	return s.activityRepository.FindByID(ctx, s.db, activity.ID, activity.UserID)
 }
 
-func (s *ActivityServiceImpl) Delete(ctx context.Context, id uint) error {
-	if _, err := s.FindByID(ctx, id); err != nil {
+func (s *ActivityServiceImpl) Delete(ctx context.Context, id uint, userID uint) error {
+	if _, err := s.activityRepository.FindByID(ctx, s.db, id, userID); err != nil {
 		return err
 	}
 
-	return s.activityRepository.Delete(ctx, s.db, id)
+	return s.activityRepository.Delete(ctx, s.db, id, userID)
 }

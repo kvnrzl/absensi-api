@@ -3,8 +3,12 @@ package model
 import "errors"
 
 var (
-	ErrUsernameAlreadyExist        = errors.New("username already exist")
-	ErrAttendanceAlreadyCheckedIn  = errors.New("you already checked in")
-	ErrAttendanceAlreadyCheckedOut = errors.New("you already checked out")
-	ErrAttendanceNotCheckedIn      = errors.New("you haven't checked in yet")
+	ErrInvalidJsonRequest          = errors.New("Invalid json request")
+	ErrUsernameAlreadyExist        = errors.New("Username telah terdaftar")
+	ErrUsernameOrPasswordWrong     = errors.New("Username atau password salah")
+	ErrAttendanceAlreadyCheckedIn  = errors.New("User telah melakukan check in")
+	ErrAttendanceAlreadyCheckedOut = errors.New("User telah melakukan check out")
+	ErrAttendanceNotCheckedIn      = errors.New("User belum melakukan check in")
+	ErrUserNotLoggedIn             = errors.New("User belum login")
+	ErrTokenNotValid               = errors.New("Token tidak valid")
 )

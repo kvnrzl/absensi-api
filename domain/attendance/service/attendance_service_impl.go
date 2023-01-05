@@ -28,7 +28,7 @@ func NewAttendanceServiceImpl(attendanceRepository repository.AttendanceReposito
 func (s *AttendanceServiceImpl) CheckIn(ctx context.Context, attendance *model.Attendance) (*model.Attendance, error) {
 	// validasi structnya
 	if err := s.validate.Struct(attendance); err != nil {
-		return nil, err
+		return nil, model.ErrInvalidJsonRequest
 	}
 
 	// cek apakah itu sudah pernah check in atau belum
@@ -43,7 +43,7 @@ func (s *AttendanceServiceImpl) CheckIn(ctx context.Context, attendance *model.A
 		return s.attendanceRepository.Create(ctx, s.db, attendance)
 	}
 
-	if exist.CheckInTime.Day() == time.Now().Day() {
+	if exist.CheckInTime.Minute() == time.Now().Minute() {
 		return nil, model.ErrAttendanceAlreadyCheckedIn
 	}
 
@@ -54,7 +54,7 @@ func (s *AttendanceServiceImpl) CheckIn(ctx context.Context, attendance *model.A
 func (s *AttendanceServiceImpl) CheckOut(ctx context.Context, attendance *model.Attendance) (*model.Attendance, error) {
 	// cek structnya
 	if err := s.validate.Struct(attendance); err != nil {
-		return nil, err
+		return nil, model.ErrInvalidJsonRequest
 	}
 
 	// cek apakah itu sudah pernah check out atau belum
@@ -63,7 +63,11 @@ func (s *AttendanceServiceImpl) CheckOut(ctx context.Context, attendance *model.
 		return nil, err
 	}
 
-	if exist.CheckOutTime.Day() == time.Now().Day() {
+	if !exist.CheckOutTime.IsZero() {
+		return nil, model.ErrAttendanceAlreadyCheckedOut
+	}
+
+	if exist.CheckOutTime.Minute() == time.Now().Minute() {
 		return nil, model.ErrAttendanceAlreadyCheckedOut
 	}
 

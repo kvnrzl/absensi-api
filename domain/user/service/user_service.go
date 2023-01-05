@@ -9,5 +9,4 @@ import (
 type UserService interface {
 	Register(ctx context.Context, user *model.User) (*model.User, error)
 	Login(ctx context.Context, user *model.User) (string, error)
-	Logout(ctx context.Context) error
 }

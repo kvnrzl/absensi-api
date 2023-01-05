@@ -21,14 +21,6 @@ func (r *AttendanceRepositoryImpl) Create(ctx context.Context, db *gorm.DB, atte
 	return attendance, nil
 }
 
-func (r *AttendanceRepositoryImpl) FindAll(ctx context.Context, db *gorm.DB) ([]*model.Attendance, error) {
-	var attendances []*model.Attendance
-	if err := db.WithContext(ctx).Find(&attendances).Error; err != nil {
-		return nil, err
-	}
-	return attendances, nil
-}
-
 func (r *AttendanceRepositoryImpl) FindByUserID(ctx context.Context, db *gorm.DB, userID uint) ([]*model.Attendance, error) {
 	var attendances []*model.Attendance
 	if err := db.WithContext(ctx).Where("user_id = ?", userID).Find(&attendances).Error; err != nil {

@@ -31,9 +31,27 @@ func (r *ActivityRepositoryImpl) FindAll(ctx context.Context, db *gorm.DB) ([]*m
 	return activities, nil
 }
 
-func (r *ActivityRepositoryImpl) FindByID(ctx context.Context, db *gorm.DB, id uint) (*model.Activity, error) {
+func (r *ActivityRepositoryImpl) FindByDate(ctx context.Context, db *gorm.DB, userID uint, date string) ([]*model.Activity, error) {
+	var activities []*model.Activity
+	err := db.WithContext(ctx).Where("user_id = ? AND DATE(start_time) = ?", userID, date).Find(&activities).Error
+	if err != nil {
+		return nil, err
+	}
+	return activities, nil
+}
+
+func (r *ActivityRepositoryImpl) FindByUserID(ctx context.Context, db *gorm.DB, userID uint) ([]*model.Activity, error) {
+	var activities []*model.Activity
+	err := db.WithContext(ctx).Where("user_id = ?", userID).Find(&activities).Error
+	if err != nil {
+		return nil, err
+	}
+	return activities, nil
+}
+
+func (r *ActivityRepositoryImpl) FindByID(ctx context.Context, db *gorm.DB, id uint, userID uint) (*model.Activity, error) {
 	var activity model.Activity
-	err := db.WithContext(ctx).Where("id = ?", id).First(&activity).Error
+	err := db.WithContext(ctx).Where("id = ? AND user_id = ?", id, userID).First(&activity).Error
 	if err != nil {
 		return nil, err
 	}
@@ -48,8 +66,8 @@ func (r *ActivityRepositoryImpl) Update(ctx context.Context, db *gorm.DB, activi
 	return activity, nil
 }
 
-func (r *ActivityRepositoryImpl) Delete(ctx context.Context, db *gorm.DB, id uint) error {
-	err := db.WithContext(ctx).Where("id = ?", id).Delete(&model.Activity{}).Error
+func (r *ActivityRepositoryImpl) Delete(ctx context.Context, db *gorm.DB, id uint, userID uint) error {
+	err := db.WithContext(ctx).Where("id = ? AND user_id = ?", id, userID).Delete(&model.Activity{}).Error
 	if err != nil {
 		return err
 	}

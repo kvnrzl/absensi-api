@@ -1,10 +1,11 @@
 package controller
 
 import (
-	"net/http"
+	"errors"
 	"strconv"
 
 	"absensi-api.com/domain/activity/service"
+	"absensi-api.com/helper"
 	"absensi-api.com/model"
 	"github.com/gin-gonic/gin"
 )
@@ -21,80 +22,110 @@ func NewActivityControllerImpl(activityService service.ActivityService) Activity
 
 func (a *ActivityControllerImpl) CreateActivity(c *gin.Context) {
 	var activity model.Activity
+
 	if err := c.ShouldBindJSON(&activity); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		helper.ResponseBadRequest(c, err.Error())
 		return
 	}
+
+	jwtString, _ := c.Cookie("token")
+	userID, _, _, _ := helper.ExtractCookie(jwtString)
+	activity.UserID = uint(userID)
 
 	res, err := a.activityService.Save(c, &activity)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		if errors.Is(err, model.ErrInvalidJsonRequest) {
+			helper.ResponseBadRequest(c, err.Error())
+			return
+		}
+
+		helper.ResponseInternalServerError(c, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"data": res})
+	helper.ResponseCreated(c, res)
 }
 
 func (a *ActivityControllerImpl) UpdateActivity(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	var activity model.Activity
+
+	if err := c.ShouldBindJSON(&activity); err != nil {
+		helper.ResponseBadRequest(c, err.Error())
 		return
 	}
 
-	var activity model.Activity
-	if err := c.ShouldBindJSON(&activity); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		helper.ResponseBadRequest(c, err.Error())
 		return
 	}
 	activity.ID = uint(id)
 
+	jwtString, _ := c.Cookie("token")
+	userID, _, _, _ := helper.ExtractCookie(jwtString)
+	activity.UserID = uint(userID)
+
 	res, err := a.activityService.Update(c, &activity)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		helper.ResponseInternalServerError(c, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": res})
+	helper.ResponseOK(c, res)
 }
 
 func (a *ActivityControllerImpl) DeleteActivity(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		helper.ResponseBadRequest(c, err.Error())
 		return
 	}
 
-	if err := a.activityService.Delete(c, uint(id)); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	jwtString, _ := c.Cookie("token")
+	userID, _, _, _ := helper.ExtractCookie(jwtString)
+
+	if err := a.activityService.Delete(c, uint(id), uint(userID)); err != nil {
+		helper.ResponseInternalServerError(c, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": true})
+	helper.ResponseOK(c, "Activity deleted")
 }
 
 func (a *ActivityControllerImpl) GetAllActivities(c *gin.Context) {
-	activity, err := a.activityService.FindAll(c)
+	res, err := a.activityService.FindAll(c)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		helper.ResponseInternalServerError(c, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": activity})
+	helper.ResponseOK(c, res)
 }
 
-func (a *ActivityControllerImpl) GetActivityByID(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+func (a *ActivityControllerImpl) GetActivities(c *gin.Context) {
+	jwtString, _ := c.Cookie("token")
+	userID, _, _, _ := helper.ExtractCookie(jwtString)
+
+	res, err := a.activityService.FindByUserID(c, uint(userID))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		helper.ResponseInternalServerError(c, err.Error())
 		return
 	}
 
-	activity, err := a.activityService.FindByID(c, uint(id))
+	helper.ResponseOK(c, res)
+}
+
+func (a *ActivityControllerImpl) GetActivitiesByDate(c *gin.Context) {
+	date := c.Query("startdate")
+
+	jwtString, _ := c.Cookie("token")
+	userID, _, _, _ := helper.ExtractCookie(jwtString)
+
+	res, err := a.activityService.FindByDate(c, uint(userID), date)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		helper.ResponseInternalServerError(c, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": activity})
+	helper.ResponseOK(c, res)
 }
