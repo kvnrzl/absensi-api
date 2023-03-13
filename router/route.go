@@ -15,7 +15,7 @@ func SetupRouter(
 	router := gin.Default()
 
 	router.GET("/", func(r *gin.Context) {
-		r.JSON(200, "Absensi API service is ready!")
+		r.JSON(200, "Absensi API service is ready cok!")
 	})
 
 	router.Use(CORSMiddleware())
