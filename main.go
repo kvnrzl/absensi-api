@@ -6,6 +6,6 @@ import (
 
 func main() {
 	r := InitServer()
-	logrus.Info("Server started at port 8080")
-	logrus.Fatal(r.Run(":8080"))
+	logrus.Info("Server started at port 1312")
+	logrus.Fatal(r.Run(":1312"))
 }
